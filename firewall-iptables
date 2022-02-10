@@ -62,11 +62,11 @@ iptables -A FORWARD ! -s 172.31.1.252 -p tcp -m multiport --sport 80,443 -j ACCE
 
 #### NAT DE ENTRADA (DNAT) PARA SRVWEB-DENVER EM SEU SERVIÇO WEB - TORNAR PÚBLICO O SEU SERVIÇO WEB
 iptables -t filter -A FORWARD -i enp0s8 -d 172.31.1.253 -p tcp --dport 80 -j ACCEPT
-iptables -t nat -A PREROUTING -i enp0s8 -d 192.168.100.54 -p tcp --dport 80 -j DNAT --to-destination 172.31.1.253:80
+iptables -t nat -A PREROUTING -i enp0s8 -d 192.168.100.64 -p tcp --dport 80 -j DNAT --to-destination 172.31.1.253:80
 
 ### NAT DE ENTRADA (DNAT) PARA SRVDC-NAIROBI EM SEU SERVIÇO WEB - TORNAR PÚBLICO SEU SERVIÇO WEB
 iptables -t filter -A FORWARD -i enp0s8 -d 172.31.1.252 -p tcp --dport 80 -j ACCEPT
-iptables -t nat -A PREROUTING -i enp0s8 -d 192.168.100.54 -p tcp --dport 8080 -j DNAT --to-destination 172.31.1.252:80
+iptables -t nat -A PREROUTING -i enp0s8 -d 192.168.100.64 -p tcp --dport 8080 -j DNAT --to-destination 172.31.1.252:80
 
 
 #LISTAR CONFIGURAÇÃO ATUAL
