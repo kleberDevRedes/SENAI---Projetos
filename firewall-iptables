@@ -1,1 +1,74 @@
+## Liberar o LocalHost
+## Baseado em IP: 127.0.0.1
+#iptables -A INPUT -s 127.0.0.1 -j ACCEPT
+#iptables -A OUTPUT -d 127.0.0.1 -j ACCEPT
+## Baseado em Interface: lo
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A OUTPUT -o lo -j ACCEPT
 
+## 1) Liberar o Acesso do CLIW7-TOQUIO
+#iptables -A INPUT -s 10.10.1.1 -j ACCEPT
+#iptables -A OUTPUT -d 10.10.1.1 -j ACCEPT
+#iptables -A FORWARD -s 10.10.1.1 -j ACCEPT
+#iptables -A FORWARD -d 10.10.1.1 -j ACCEPT
+## 2) Liberar o Acesso SSH do Firewall
+iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+iptables -A OUTPUT -p tcp --sport 22 -j ACCEPT
+
+##9) REJEITAR  "ICMP" DO CLIENTE PARA SRVWEB-DENVER, GERANDO LOG QUANDO ACIONADO
+iptables -A FORWARD -s 10.10.1.1 -d 172.31.1.253 -j LOG --log-prefix "Alguem vai rodar...quem?quem?"
+iptables -A FORWARD -s 10.10.1.1 -d 172.31.1.253 -j REJECT
+
+## 3) Liberar o ICMP para todo CenÃ¡rio
+iptables -A INPUT -p icmp -j ACCEPT
+iptables -A OUTPUT -p icmp -j ACCEPT
+iptables -A FORWARD -p icmp -j ACCEPT
+iptables -A FORWARD -p icmp -j ACCEPT
+
+## 4) LIBERAR SSH do SRVFW-BERLIM PARA CLIENTE,SERVIDORES E INTERNET
+iptables -A INPUT -p tcp -s 172.31.1.0/24 --dport 22 -j ACCEPT
+iptables -A OUTPUT -p tcp -d 172.31.1.0/24 --sport 22 -j ACCEPT
+#iptables -A INPUT -p tcp -i enp0s8 --dport 22 -j ACCEPT
+#iptables -A OUTPUT -p tcp -o enp0s8 --sport 22 -j ACCEPT
+
+## 5) LIBERAR REPOSITORIO (LINUX) VIGENTE
+iptables -A OUTPUT -d deb.debian.org -j ACCEPT
+iptables -A INPUT -s deb.debian.org -j ACCEPT
+iptables -A FORWARD -d deb.debian.org -j ACCEPT
+iptables -A FORWARD -s deb.debian.org -j ACCEPT
+
+iptables -A OUTPUT -d security.debian.org -j ACCEPT
+iptables -A INPUT -s security.debian.org -j ACCEPT
+iptables -A FORWARD -d security.debian.org -j ACCEPT
+iptables -A FORWARD -s security.debian.org -j ACCEPT
+
+## 6 
+iptables -A OUTPUT -p udp --dport 53 -j ACCEPT
+iptables -A INPUT -p udp --sport 53 -j ACCEPT
+iptables -A FORWARD -p udp --dport 53 -j ACCEPT
+iptables -A FORWARD -p udp --sport 53 -j ACCEPT
+
+## 7) LIBERAR COMPARTILHAMENTO DE ARQUIVO DO SRVDC-NAIROBI
+#### PORTAS LÓGICAS: 129,445/TCP 137,138/UDP
+iptables -A FORWARD -d 172.31.1.252 -p tcp -m multiport --dport 139,445 -j ACCEPT
+iptables -A FORWARD -s 172.31.1.252 -p tcp -m multiport --sport 139,445 -j ACCEPT
+iptables -A FORWARD -d 172.31.1.252 -p udp -m multiport --dport 137,138 -j ACCEPT
+iptables -A FORWARD -s 172.31.1.252 -p udp -m multiport --sport 137,138 -j ACCEPT
+
+## 8) LIBERAR ACESSO A INTERNET (NAVEGAÇÃO); EXCETO SRVDC-NAIROBI
+### http (80), https (443), DNS (53/udp)
+iptables -A FORWARD ! -s 172.31.1.252 -p tcp -m multiport --dport 80,443 -j ACCEPT
+iptables -A FORWARD ! -s 172.31.1.252 -p tcp -m multiport --sport 80,443 -j ACCEPT
+
+#### NAT DE ENTRADA (DNAT) PARA SRVWEB-DENVER EM SEU SERVIÇO WEB - TORNAR PÚBLICO O SEU SERVIÇO WEB
+iptables -t filter -A FORWARD -i enp0s8 -d 172.31.1.253 -p tcp --dport 80 -j ACCEPT
+iptables -t nat -A PREROUTING -i enp0s8 -d 192.168.100.54 -p tcp --dport 80 -j DNAT --to-destination 172.31.1.253:80
+
+### NAT DE ENTRADA (DNAT) PARA SRVDC-NAIROBI EM SEU SERVIÇO WEB - TORNAR PÚBLICO SEU SERVIÇO WEB
+iptables -t filter -A FORWARD -i enp0s8 -d 172.31.1.252 -p tcp --dport 80 -j ACCEPT
+iptables -t nat -A PREROUTING -i enp0s8 -d 192.168.100.54 -p tcp --dport 8080 -j DNAT --to-destination 172.31.1.252:80
+
+
+#LISTAR CONFIGURAÇÃO ATUAL
+clear
+iptables -L -nv --line-numbers
