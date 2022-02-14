@@ -70,6 +70,14 @@ iptables -t nat -A PREROUTING -i enp0s8 -d 192.168.100.64 -p tcp --dport 80 -j D
 iptables -t filter -A FORWARD -i enp0s8 -d 172.31.1.252 -p tcp --dport 80 -j ACCEPT
 iptables -t nat -A PREROUTING -i enp0s8 -d 192.168.100.64 -p tcp --dport 8080 -j DNAT --to-destination 172.31.1.252:80
 
+####### NAT DE ENTRADA (DNAT) PARA SRVMON-MOSCOU EM SEU SERVIÇO WEB - TORNAR PÚBLICO SEU SERVIÇO WEB
+iptables -t filter -A FORWARD -i enp0s8 -d 172.31.1.250 -p tcp --dport 80 -j ACCEPT
+iptables -t nat -A PREROUTING -i enp0s8 -d 192.168.100.100 -p tcp --dport 8081 -j DNAT --to-destination 172.31.1.250:80
+
+####### NAT DE ENTRADA (DNAT) PARA SRVMON-MOSCOU EM SEU SERVIÇO WEB, PARA GRAFANA - TORNAR PÚBLICO SEU SERVIÇO WEB
+iptables -t filter -A FORWARD -i enp0s8 -d 172.31.1.250 -p tcp --dport 3000 -j ACCEPT
+iptables -t nat -A PREROUTING -i enp0s8 -d 192.168.100.100 -p tcp --dport 3000 -j DNAT --to-destination 172.31.1.250:3000
+
 
 #LISTAR CONFIGURAÇÃO ATUAL
 clear
